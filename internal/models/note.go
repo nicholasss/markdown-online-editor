@@ -1,4 +1,4 @@
-package main
+package note
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type NoteService interface {
 
 	// Updates specified note in the repository and returns the updated note.
 	UpdateNote(ctx context.Context, noteID uuid.UUID, updatedAt time.Time, newText []byte) (*Note, error)
-	
+
 	// Deletes the specified note from within the repository.
 	DeleteNote(ctx context.Context, noteID uuid.UUID) error
 }
@@ -50,3 +50,4 @@ type NoteRepository interface {
 	// Deletes the specified note from within the repository.
 	DeleteNote(ctx context.Context, note *Note) error
 }
+
