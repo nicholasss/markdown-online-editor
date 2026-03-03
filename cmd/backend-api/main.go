@@ -9,6 +9,8 @@ import (
 	sqlite "github.com/nicholasss/markdown-online-editor/internal/sqlite_repository"
 )
 
+// TODO: Use the .env instead of hardcoded
+
 const SqliteDBPath = "./notes.db"
 
 // Initialize and only call core functions
