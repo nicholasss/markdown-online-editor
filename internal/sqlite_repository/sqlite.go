@@ -15,6 +15,38 @@ import (
 
 const DBDriver = "sqlite3"
 
+// === Sqlite Repository ===
+
+func scanRow(row *sql.Row) (*note.Note, error) {
+	// Execute query with scan
+	var queryID uuid.NullUUID
+	var queryCreatedAt int64
+	var queryUpdatedAt int64
+	var queryNoteText []byte
+	err := row.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("unable to query row %w", err)
+	} else if err != nil {
+		return nil, err
+	}
+
+	// Double check the queried ID
+	if !queryID.Valid {
+		return nil, errors.New("database returned a null UUID")
+	}
+
+	// Construct returning object
+	queryNote := note.Note{
+		ID:            queryID.UUID,
+		NoteCreatedAt: time.Unix(queryCreatedAt, 0),
+		NoteUpdatedAt: time.Unix(queryUpdatedAt, 0),
+		NoteText:      queryNoteText,
+	}
+	return &queryNote, nil
+}
+
+// === Sqlite Repository ===
+
 func NewSqliteRepository(DBConnectionString string) (*SqliteRepository, error) {
 	db, err := sql.Open(DBDriver, DBConnectionString)
 	if err != nil {
@@ -40,7 +72,7 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 	}
 
 	// Query literal
-	query := `INSERT INTO expenses (
+	query := `INSERT INTO notes (
   	id,
   	created_at,
   	updated_at,
@@ -52,33 +84,40 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 		?
 	) RETURNING *;`
 
-	// Construct the row query
+	// Construct the row query and execute
 	row := r.DB.QueryRowContext(ctx, query, newNote.ID, newNote.NoteText)
-
-	// Execute query with scan
-	var queryID uuid.UUID
-	var queryCreatedAt int64
-	var queryUpdatedAt int64
-	var queryNoteText []byte
-	err := row.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("unable to insert row %w", err)
-	} else if err != nil {
+	queryNote, err := scanRow(row)
+	if err != nil {
 		return nil, err
 	}
 
-	// Construct returning object
-	queryNote := note.Note{
-		ID:            queryID,
-		NoteCreatedAt: time.Unix(queryCreatedAt, 0),
-		NoteUpdatedAt: time.Unix(queryUpdatedAt, 0),
-		NoteText:      queryNoteText,
-	}
-	return &queryNote, nil
+	return queryNote, nil
 }
 
 func (r *SqliteRepository) QueryNote(ctx context.Context, noteID uuid.UUID) (*note.Note, error) {
-	return nil, nil
+	if noteID == uuid.Nil {
+		return nil, errors.New("nil uuid was passed in")
+	}
+
+	// Query literal
+	query := `SELECT
+  	id,
+  	created_at,
+  	updated_at,
+  	note_text
+	FROM
+		notes
+	WHERE
+		id = ?;`
+
+	// Construct the row query
+	row := r.DB.QueryRowContext(ctx, query, noteID)
+	queryNote, err := scanRow(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return queryNote, nil
 }
 
 func (r *SqliteRepository) QueryAllNotes(ctx context.Context) (*[]note.Note, error) {
@@ -89,6 +128,6 @@ func (r *SqliteRepository) AlterNote(ctx context.Context, note *note.Note) (*not
 	return nil, nil
 }
 
-func (r *SqliteRepository) DeleteNote(ctx context.Context, note *note.Note) error {
+func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToRemove *note.Note) error {
 	return nil
 }
