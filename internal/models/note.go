@@ -18,6 +18,7 @@ type Note struct {
 // NoteService is implemented by the note service within internal/services.
 type NoteService interface {
 	// Creates and returns a new note object after storing it in the repository.
+	// This method is where a UUID is generated for the note.
 	CreateNote(ctx context.Context, createdAt time.Time, text []byte) (*Note, error)
 
 	// Retrieves a stored note from the repository.
