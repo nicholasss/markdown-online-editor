@@ -10,7 +10,6 @@ import (
 // Note represents a single note.
 type Note struct {
 	ID            uuid.UUID
-	Author        uuid.UUID
 	NoteCreatedAt time.Time
 	NoteUpdatedAt time.Time
 	NoteText      []byte
@@ -19,7 +18,7 @@ type Note struct {
 // NoteService is implemented by the note service within internal/services.
 type NoteService interface {
 	// Creates and returns a new note object after storing it in the repository.
-	CreateNote(ctx context.Context, author uuid.UUID, createdAt time.Time, text []byte) (*Note, error)
+	CreateNote(ctx context.Context, createdAt time.Time, text []byte) (*Note, error)
 
 	// Retrieves a stored note from the repository.
 	GetNote(ctx context.Context, noteID uuid.UUID) (*Note, error)
