@@ -6,18 +6,23 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	sqlite "github.com/nicholasss/markdown-online-editor/internal/sqlite_repository"
 )
-
-// TODO: Use the .env instead of hardcoded
-
-const SqliteDBPath = "./notes.db"
 
 // Initialize and only call core functions
 func main() {
 	log.Println("Initializing Markdown Editor Backend...")
 
-	_, err := os.Stat(SqliteDBPath)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s\n", err)
+	}
+	log.Println("Successfully loaded '.env' variables.")
+
+	SqliteDBPath := os.Getenv("GOOSE_DBSTRING")
+
+	_, err = os.Stat(SqliteDBPath)
 	if errors.Is(err, fs.ErrNotExist) {
 		log.Println("Database for notes was not found in root of project.")
 		log.Println("You may need to create and initialize the database.")
