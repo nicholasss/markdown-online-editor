@@ -17,6 +17,7 @@ const DBDriver = "sqlite3"
 
 // === Sqlite Repository ===
 
+// Used by InsertNote, UpdateNote, and GetNote since they all return the entire record
 func scanRow(row *sql.Row) (*note.Note, error) {
 	// Declare query variables
 	var queryID uuid.NullUUID
