@@ -18,15 +18,19 @@ const DBDriver = "sqlite3"
 // === Sqlite Repository ===
 
 func scanRow(row *sql.Row) (*note.Note, error) {
-	// Execute query with scan
+	// Declare query variables
 	var queryID uuid.NullUUID
 	var queryCreatedAt int64
 	var queryUpdatedAt int64
 	var queryNoteText []byte
-	err := row.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText)
+	var queryNoteTitle string
+
+	// Execute query with scan
+	err := row.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText, &queryNoteTitle)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("unable to query row %w", err)
 	} else if err != nil {
+		log.Printf("Error scanning db row: %s\n", err)
 		return nil, err
 	}
 
@@ -41,6 +45,7 @@ func scanRow(row *sql.Row) (*note.Note, error) {
 		NoteCreatedAt: time.Unix(queryCreatedAt, 0),
 		NoteUpdatedAt: time.Unix(queryUpdatedAt, 0),
 		NoteText:      queryNoteText,
+		NoteTitle:     queryNoteTitle,
 	}
 	return &queryNote, nil
 }
@@ -76,11 +81,13 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
   	id,
   	created_at,
   	updated_at,
-  	note_text
+  	note_text,
+		note_title
 	) values (
 		?,
 		unixepoch(),
 		unixepoch(),
+		?,
 		?
 	) RETURNING *;`
 
@@ -104,11 +111,13 @@ func (r *SqliteRepository) QueryNote(ctx context.Context, noteID uuid.UUID) (*no
   	id,
   	created_at,
   	updated_at,
-  	note_text
+  	note_text,
+		note_title
 	FROM
 		notes
 	WHERE
-		id = ?;`
+		id = ?
+	RETURNING *;`
 
 	// Construct the row query
 	row := r.DB.QueryRowContext(ctx, query, noteID)
