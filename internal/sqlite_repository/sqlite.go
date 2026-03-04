@@ -53,8 +53,8 @@ func scanRow(row *sql.Row) (*note.Note, error) {
 
 // === Sqlite Repository ===
 
-func NewSqliteRepository(DBConnectionString string) (*SqliteRepository, error) {
-	db, err := sql.Open(DBDriver, DBConnectionString)
+func NewSqliteRepository(databaseString string) (*SqliteRepository, error) {
+	db, err := sql.Open(DBDriver, databaseString)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
 		return nil, err
