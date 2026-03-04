@@ -161,5 +161,29 @@ func (r *SqliteRepository) UpdateNote(ctx context.Context, alteredNote *note.Not
 }
 
 func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToDelete *note.Note) error {
+	if noteToDelete == nil {
+		return errors.New("nil pointer provided")
+	}
+
+	// Query literal
+	query := `DELETE FROM
+		notes
+	WHERE
+		id = *;`
+
+	// Run query
+	res, err := r.DB.ExecContext(ctx, query, noteToDelete.ID)
+	if err != nil {
+		return err
+	}
+
+	// Check for no rows deleted
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	} else if rowsAffected == 0 {
+		return errors.New("no rows deleted")
+	}
+
 	return nil
 }
