@@ -29,7 +29,7 @@ func main() {
 		os.Exit(1)
 	}
 	if err != nil {
-		log.Printf("Unknown error: %s\n", err)
+		log.Printf("Error checking status of notes database: %s\n", err)
 		os.Exit(1)
 	}
 
