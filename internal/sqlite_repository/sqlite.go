@@ -131,7 +131,59 @@ func (r *SqliteRepository) GetNote(ctx context.Context, noteID uuid.UUID) (*note
 }
 
 func (r *SqliteRepository) GetAllNotes(ctx context.Context) (*[]note.Note, error) {
-	return nil, nil
+	query := `SELECT
+  	id,
+  	created_at,
+  	updated_at,
+  	note_text,
+		note_title
+	FROM
+		notes;`
+
+	rows, err := r.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		closeErr := rows.Close()
+		if err == nil && closeErr != nil {
+			err = closeErr
+		}
+	}()
+
+	// Scan the rows into a notes slice
+	notes := make([]note.Note, 0)
+	for rows.Next() {
+		var queryID uuid.NullUUID
+		var queryCreatedAt int64
+		var queryUpdatedAt int64
+		var queryNoteText []byte
+		var queryNoteTitle string
+
+		err := rows.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText, &queryNoteTitle)
+		if err != nil {
+			return nil, err
+		}
+
+		// NOTE: Should I validate the queryID value?
+		// if !queryID.Valid { Do what if its invalid ?}
+
+		queryNote := note.Note{
+			ID:            queryID.UUID,
+			NoteCreatedAt: time.Unix(queryCreatedAt, 0),
+			NoteUpdatedAt: time.Unix(queryUpdatedAt, 0),
+			NoteText:      queryNoteText,
+			NoteTitle:     queryNoteTitle,
+		}
+
+		notes = append(notes, queryNote)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &notes, nil
 }
 
 func (r *SqliteRepository) UpdateNote(ctx context.Context, alteredNote *note.Note) (*note.Note, error) {
