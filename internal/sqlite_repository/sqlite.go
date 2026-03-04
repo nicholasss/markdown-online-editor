@@ -92,7 +92,7 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 	) RETURNING *;`
 
 	// Construct the row query and execute
-	row := r.DB.QueryRowContext(ctx, query, newNote.ID, newNote.NoteText)
+	row := r.DB.QueryRowContext(ctx, query, newNote.ID, newNote.NoteText, newNote.NoteTitle)
 	queryNote, err := scanRow(row)
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 	return queryNote, nil
 }
 
-func (r *SqliteRepository) QueryNote(ctx context.Context, noteID uuid.UUID) (*note.Note, error) {
+func (r *SqliteRepository) GetNote(ctx context.Context, noteID uuid.UUID) (*note.Note, error) {
 	if noteID == uuid.Nil {
 		return nil, errors.New("nil uuid was passed in")
 	}
@@ -129,14 +129,36 @@ func (r *SqliteRepository) QueryNote(ctx context.Context, noteID uuid.UUID) (*no
 	return queryNote, nil
 }
 
-func (r *SqliteRepository) QueryAllNotes(ctx context.Context) (*[]note.Note, error) {
+func (r *SqliteRepository) GetAllNotes(ctx context.Context) (*[]note.Note, error) {
 	return nil, nil
 }
 
-func (r *SqliteRepository) AlterNote(ctx context.Context, note *note.Note) (*note.Note, error) {
-	return nil, nil
+func (r *SqliteRepository) UpdateNote(ctx context.Context, alteredNote *note.Note) (*note.Note, error) {
+	if alteredNote == nil {
+		return nil, errors.New("nil pointer provided")
+	}
+
+	// Query literal
+	query := `UPDATE
+		notes
+	SET
+  	updated_at = unixepoch(),
+  	note_text = ?,
+		note_title = ?
+	WHERE
+		id = ?
+	RETURNING *;`
+
+	// Construct the row query
+	row := r.DB.QueryRowContext(ctx, query, alteredNote.NoteText, alteredNote.NoteTitle, alteredNote.ID)
+	queryNote, err := scanRow(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return queryNote, nil
 }
 
-func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToRemove *note.Note) error {
+func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToDelete *note.Note) error {
 	return nil
 }
