@@ -13,13 +13,14 @@ type Note struct {
 	NoteCreatedAt time.Time
 	NoteUpdatedAt time.Time
 	NoteText      []byte
+	NoteTitle     string
 }
 
 // NoteService is implemented by the note service within internal/services.
 type NoteService interface {
 	// Creates and returns a new note object after storing it in the repository.
 	// This method is where a UUID is generated for the note.
-	CreateNote(ctx context.Context, createdAt time.Time, text []byte) (*Note, error)
+	CreateNote(ctx context.Context, createdAt time.Time, title string, text []byte) (*Note, error)
 
 	// Retrieves a stored note from the repository.
 	GetNote(ctx context.Context, noteID uuid.UUID) (*Note, error)
@@ -28,7 +29,7 @@ type NoteService interface {
 	GetAllNotes(ctx context.Context) (*[]Note, error)
 
 	// Updates specified note in the repository and returns the updated note.
-	UpdateNote(ctx context.Context, noteID uuid.UUID, updatedAt time.Time, newText []byte) (*Note, error)
+	UpdateNote(ctx context.Context, noteID uuid.UUID, updatedAt time.Time, newTitle string, newText []byte) (*Note, error)
 
 	// Deletes the specified note from within the repository.
 	DeleteNote(ctx context.Context, noteID uuid.UUID) error
@@ -37,7 +38,7 @@ type NoteService interface {
 // NoteRepository is implemented by the note repository within internal/repository with a concrete database.
 type NoteRepository interface {
 	// Creates a new note in the repository.
-	InsertNote(ctx context.Context, note *Note) (*Note, error)
+	InsertNote(ctx context.Context, newNote *Note) (*Note, error)
 
 	// Retrieves note from the repository.
 	QueryNote(ctx context.Context, noteID uuid.UUID) (*Note, error)
@@ -46,9 +47,8 @@ type NoteRepository interface {
 	QueryAllNotes(ctx context.Context) (*[]Note, error)
 
 	// Updates the provided note, using its ID, within the repository.
-	AlterNote(ctx context.Context, note *Note) (*Note, error)
+	AlterNote(ctx context.Context, alteredNote *Note) (*Note, error)
 
 	// Deletes the specified note from within the repository.
-	DeleteNote(ctx context.Context, note *Note) error
+	DeleteNote(ctx context.Context, noteToDelete *Note) error
 }
-
