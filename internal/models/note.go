@@ -41,13 +41,13 @@ type NoteRepository interface {
 	InsertNote(ctx context.Context, newNote *Note) (*Note, error)
 
 	// Retrieves note from the repository.
-	QueryNote(ctx context.Context, noteID uuid.UUID) (*Note, error)
+	GetNote(ctx context.Context, noteID uuid.UUID) (*Note, error)
 
 	// Retrieves all notes from the repository.
-	QueryAllNotes(ctx context.Context) (*[]Note, error)
+	GetAllNotes(ctx context.Context) (*[]Note, error)
 
 	// Updates the provided note, using its ID, within the repository.
-	AlterNote(ctx context.Context, alteredNote *Note) (*Note, error)
+	UpdateNote(ctx context.Context, alteredNote *Note) (*Note, error)
 
 	// Deletes the specified note from within the repository.
 	DeleteNote(ctx context.Context, noteToDelete *Note) error
