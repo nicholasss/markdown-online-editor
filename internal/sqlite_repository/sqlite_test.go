@@ -41,6 +41,23 @@ func checkNoteEquality(t *testing.T, got, want *note.Note) {
 	}
 }
 
+// Helper function to check the error values for a particular case
+func checkError(t *testing.T, shouldErr bool, gotErr, wantErr error) {
+	t.Helper()
+
+	// checking if we expect an error
+	if (gotErr != nil) != shouldErr {
+		t.Errorf("InsertNote() got error: '%v', expected error: '%v'", gotErr, wantErr)
+	}
+
+	// checking error type if its not nil
+	if gotErr != nil {
+		if !errors.Is(gotErr, wantErr) {
+			t.Errorf("got error: %v, want error: %v", gotErr, wantErr)
+		}
+	}
+}
+
 func prepareTestDB(t *testing.T, db *sql.DB) {
 	t.Helper()
 
@@ -123,11 +140,11 @@ The worst thing you can do is stop learning and stop practicing.
 
 func TestInsertNote(t *testing.T) {
 	testTable := []struct {
-		name        string
-		newNote     *note.Note
-		expectError bool
-		wantError   error
-		wantNote    *note.Note
+		name      string
+		newNote   *note.Note
+		shouldErr bool
+		wantErr   error
+		wantNote  *note.Note
 	}{
 		{
 			name: "valid-1",
@@ -146,8 +163,8 @@ Learn Mandarin to basic A1
 German is top priority, with Spanish close behind. Mandarin does not matter.`),
 				NoteTitle: "Language Learning",
 			},
-			expectError: false,
-			wantError:   nil,
+			shouldErr: false,
+			wantErr:   nil,
 			wantNote: &note.Note{
 				ID: uuid.MustParse("2037225a-da01-4609-ad78-fb37c3f6cf06"),
 				NoteText: []byte(`# Language Learning
@@ -188,20 +205,11 @@ German is top priority, with Spanish close behind. Mandarin does not matter.`),
 			// call the test function
 			gotNote, gotErr := repo.InsertNote(t.Context(), testCase.newNote)
 
-			// checking if we expect an error
-			if (gotErr != nil) != testCase.expectError {
-				t.Errorf("InsertNote() got error: '%v', expected error: '%v'", gotErr, testCase.wantError)
-			}
-
-			// checking error type if its not nil
-			if gotErr != nil {
-				if !errors.Is(gotErr, testCase.wantError) {
-					t.Errorf("got error: %v, want error: %v", gotErr, testCase.wantError)
-				}
-			}
+			// Check the returned errors
+			checkError(t, testCase.shouldErr, gotErr, testCase.wantErr)
 
 			// check returned note
-			if !testCase.expectError && gotNote != nil {
+			if !testCase.shouldErr && gotNote != nil {
 				checkNoteEquality(t, gotNote, testCase.wantNote)
 			}
 		})
