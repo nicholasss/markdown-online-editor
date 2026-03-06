@@ -260,6 +260,27 @@ There are sometimes great recipes from other cuisines and cultures that you woul
 				NoteTitle: "Baking Notes",
 			},
 		},
+		{
+			name:      "valid-2-get-note",
+			inputID:   uuid.MustParse("337b8543-1272-4616-b9a3-3a16e5f9a522"),
+			shouldErr: false,
+			wantErr:   nil,
+			wantNote: &note.Note{
+				ID:            uuid.MustParse("337b8543-1272-4616-b9a3-3a16e5f9a522"),
+				NoteCreatedAt: time.Unix(1772551246, 0),
+				NoteUpdatedAt: time.Unix(1772556346, 0),
+				NoteText: []byte(`# Coding notes
+## Watch out for typos
+Typos within code can lead to annoying bugs, make sure you are practicing for accuracy, not just speed.
+## Markup languages are your friend
+Markup languages can be very useful when keeping notes or storing information in a document.
+## Keep practicing
+The worst thing you can do is stop learning and stop practicing.
+
+<span id="counter">4</span>`),
+				NoteTitle: "Coding Notes",
+			},
+		},
 	}
 
 	for _, testCase := range testTable {
