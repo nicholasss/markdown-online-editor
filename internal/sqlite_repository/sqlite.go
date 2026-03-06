@@ -101,10 +101,10 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 	if newNote.NoteTitle == "" {
 		return nil, ErrInvalidNoteTitle
 	}
-	if newNote.NoteCreatedAt.IsZero() {
+	if !newNote.NoteCreatedAt.IsZero() {
 		return nil, ErrInvalidCreatedAt
 	}
-	if newNote.NoteUpdatedAt.IsZero() {
+	if !newNote.NoteUpdatedAt.IsZero() {
 		return nil, ErrInvalidUpdatedAt
 	}
 
@@ -194,7 +194,7 @@ func (r *SqliteRepository) GetAllNotes(ctx context.Context) (*[]note.Note, error
 			return nil, err
 		}
 
-		// NOTE: Should I validate the queryID value?
+		// NOTE: Should I validate the queryID value returned from the database?
 		// if !queryID.Valid { Do what if its invalid ?}
 
 		queryNote := note.Note{
