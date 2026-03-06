@@ -112,8 +112,8 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 }
 
 func (r *SqliteRepository) GetNote(ctx context.Context, noteID uuid.UUID) (*note.Note, error) {
-	if noteID == uuid.Nil {
-		return nil, errors.New("nil uuid was passed in")
+	if noteID == uuid.Nil || noteID == uuid.Max {
+		return nil, errors.New("invalid note id provided")
 	}
 
 	// Query literal
