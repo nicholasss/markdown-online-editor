@@ -2,6 +2,8 @@
 
 A simple and robust online Markdown editor.
 
+[![golangci-lint](https://github.com/nicholasss/markdown-online-editor/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/nicholasss/markdown-online-editor/actions/workflows/golangci-lint.yml)
+
 ## Requirements
 
 - [Goose](https://github.com/pressly/goose): A database migration tool.  
