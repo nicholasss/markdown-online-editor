@@ -13,7 +13,25 @@ import (
 	note "github.com/nicholasss/markdown-online-editor/internal/models"
 )
 
-const DBDriver = "sqlite3"
+const (
+	DBDriver = "sqlite3"
+	MiB      = 1024 * 1024
+)
+
+var (
+	// Nil Pointer Error
+	ErrNilPointer = errors.New("nil pointer was provided")
+
+	// ID Errors
+	ErrInvalidIDProvided = errors.New("invalid note id was provided to repository")
+	ErrInvalidIDReturned = errors.New("invalid note id was returned from database")
+
+	// Note Data Errors
+	ErrInvalidNoteText  = errors.New("invalid note text")
+	ErrInvalidNoteTitle = errors.New("invalid note title")
+	ErrInvalidCreatedAt = errors.New("invalid created at value ")
+	ErrInvalidUpdatedAt = errors.New("invalid updated at value")
+)
 
 // === Sqlite Repository ===
 
@@ -36,7 +54,7 @@ func scanRow(row *sql.Row) (*note.Note, error) {
 
 	// Double check the queried ID
 	if !queryID.Valid {
-		return nil, errors.New("database returned a null UUID")
+		return nil, ErrInvalidIDReturned
 	}
 
 	queryNote := note.Note{
@@ -71,20 +89,23 @@ func (r *SqliteRepository) CloseRepository() error {
 
 func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (*note.Note, error) {
 	if newNote == nil {
-		return nil, errors.New("nil pointer was passed")
+		return nil, ErrNilPointer
 	}
 	if newNote.ID == uuid.Nil || newNote.ID == uuid.Max {
-		return nil, errors.New("invalid note id provided")
+		return nil, ErrInvalidIDProvided
 	}
-	if len(newNote.NoteText) == 0 {
-		return nil, errors.New("empty note text provided")
+	// Either no values, or is greater than 10 MiB in size
+	if len(newNote.NoteText) == 0 || len(newNote.NoteText) > 10*MiB {
+		return nil, ErrInvalidNoteText
 	}
 	if newNote.NoteTitle == "" {
-		return nil, errors.New("empty note title provided")
+		return nil, ErrInvalidNoteTitle
 	}
-	if newNote.NoteCreatedAt.IsZero() || newNote.NoteUpdatedAt.IsZero() {
-		log.Println("Warning: createdAt and updatedAt values are discarded.")
-		// These values are set by the databse itself when creating new notes.
+	if newNote.NoteCreatedAt.IsZero() {
+		return nil, ErrInvalidCreatedAt
+	}
+	if newNote.NoteUpdatedAt.IsZero() {
+		return nil, ErrInvalidUpdatedAt
 	}
 
 	// Query literal
@@ -113,7 +134,7 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 
 func (r *SqliteRepository) GetNote(ctx context.Context, noteID uuid.UUID) (*note.Note, error) {
 	if noteID == uuid.Nil || noteID == uuid.Max {
-		return nil, errors.New("invalid note id provided")
+		return nil, ErrInvalidIDProvided
 	}
 
 	// Query literal
@@ -196,7 +217,7 @@ func (r *SqliteRepository) GetAllNotes(ctx context.Context) (*[]note.Note, error
 
 func (r *SqliteRepository) UpdateNote(ctx context.Context, alteredNote *note.Note) (*note.Note, error) {
 	if alteredNote == nil {
-		return nil, errors.New("nil pointer provided")
+		return nil, ErrNilPointer
 	}
 
 	// Query literal
@@ -222,7 +243,7 @@ func (r *SqliteRepository) UpdateNote(ctx context.Context, alteredNote *note.Not
 
 func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToDelete *note.Note) error {
 	if noteToDelete == nil {
-		return errors.New("nil pointer provided")
+		return ErrNilPointer
 	}
 
 	// Query literal
