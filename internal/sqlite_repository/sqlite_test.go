@@ -58,6 +58,8 @@ func checkError(t *testing.T, shouldErr bool, gotErr, wantErr error) {
 	}
 }
 
+// Take the initialized repository's SQLite3 database, and prepare it with mock data for testing.
+// It is created, in memory when calling NewSqliteRepository() from the Note's repository implementation.
 func prepareTestDB(t *testing.T, db *sql.DB) {
 	t.Helper()
 
