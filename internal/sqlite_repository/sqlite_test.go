@@ -2,9 +2,9 @@ package sqlite_test
 
 import (
 	"bytes"
-	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -12,7 +12,11 @@ import (
 	sqlite "github.com/nicholasss/markdown-online-editor/internal/sqlite_repository"
 )
 
+// === Testing Constants ===
+
 const databaseString = ":memory:"
+
+// === Testing Helper Functions ===
 
 func checkNoteEquality(t *testing.T, got, want *note.Note) {
 	t.Helper()
@@ -42,26 +46,42 @@ func checkNoteEquality(t *testing.T, got, want *note.Note) {
 }
 
 // Helper function to check the error values for a particular case
-func checkError(t *testing.T, shouldErr bool, gotErr, wantErr error) {
+func checkTestError(t *testing.T, shouldErr bool, gotErr, wantErr error) {
 	t.Helper()
 
 	// checking if we expect an error
 	if (gotErr != nil) != shouldErr {
-		t.Errorf("InsertNote() got error: '%v', expected error: '%v'", gotErr, wantErr)
+		t.Errorf("Test Failed: got error: '%v', expected error: '%v'", gotErr, wantErr)
 	}
 
 	// checking error type if its not nil
 	if gotErr != nil {
 		if !errors.Is(gotErr, wantErr) {
-			t.Errorf("got error: %v, want error: %v", gotErr, wantErr)
+			t.Errorf("Test Failed: got error: %v, want error: %v", gotErr, wantErr)
 		}
+	}
+}
+
+// Defered function to close the database
+func closeTestDB(t *testing.T, repo *sqlite.SqliteRepository) {
+	t.Helper()
+
+	err := repo.DB.Close()
+	if err != nil {
+		t.Errorf("Unable to close in-memory sqlite3 repo: %s\n", err)
 	}
 }
 
 // Take the initialized repository's SQLite3 database, and prepare it with mock data for testing.
 // It is created, in memory when calling NewSqliteRepository() from the Note's repository implementation.
-func prepareTestDB(t *testing.T, db *sql.DB) {
+func newTestDB(t *testing.T) *sqlite.SqliteRepository {
 	t.Helper()
+
+	// Create repository in memory
+	repo, err := sqlite.NewSqliteRepository(databaseString)
+	if err != nil {
+		t.Fatalf("Failed to setup in-memory sqlite3 repository: %s\n", err)
+	}
 
 	// Create the table to test against
 	createQuery := `CREATE TABLE
@@ -72,12 +92,12 @@ notes (
 	note_text BLOB,
 	note_title TEXT
 );`
-	_, err := db.Exec(createQuery)
+	_, err = repo.DB.Exec(createQuery)
 	if err != nil {
 		t.Fatalf("Unable to create table: %s", err)
 	}
 
-	// Insert Query
+	// Insert query and mock data for database
 	insertQuery := `INSERT INTO
 notes (
 	id,
@@ -132,13 +152,19 @@ The worst thing you can do is stop learning and stop practicing.
 		},
 	}
 
+	// Actually insert the mock data
 	for _, record := range insertData {
-		_, err := db.Exec(insertQuery, record.id, record.createdAt, record.updatedAt, record.noteText, record.noteTitle)
+		_, err := repo.DB.Exec(insertQuery, record.id, record.createdAt, record.updatedAt, record.noteText, record.noteTitle)
 		if err != nil {
 			t.Fatalf("Error preparing database with test data: %s\n", err)
 		}
 	}
+
+	// Return prepared database for testing
+	return repo
 }
+
+// === Method Testing ===
 
 func TestInsertNote(t *testing.T) {
 	testTable := []struct {
@@ -187,28 +213,65 @@ German is top priority, with Spanish close behind. Mandarin does not matter.`),
 
 	for _, testCase := range testTable {
 		t.Run(testCase.name, func(t *testing.T) {
-			// setup repository
-			repo, err := sqlite.NewSqliteRepository(databaseString)
-			if err != nil {
-				t.Fatalf("Failed to setup in-memory sqlite3 repository: %s\n", err)
-			}
-
-			// run prepare test database
-			prepareTestDB(t, repo.DB)
-
-			// defer teardown
-			defer func() {
-				err := repo.DB.Close()
-				if err != nil {
-					t.Errorf("Unable to close in-memory sqlite3 repo: %s\n", err)
-				}
-			}()
+			// Setup test repository
+			repo := newTestDB(t)
+			defer closeTestDB(t, repo)
 
 			// call the test function
 			gotNote, gotErr := repo.InsertNote(t.Context(), testCase.newNote)
 
 			// Check the returned errors
-			checkError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+
+			// check returned note
+			if !testCase.shouldErr && gotNote != nil {
+				checkNoteEquality(t, gotNote, testCase.wantNote)
+			}
+		})
+	}
+}
+
+func TestGetNote(t *testing.T) {
+	testTable := []struct {
+		name      string
+		inputID   uuid.UUID
+		shouldErr bool
+		wantErr   error
+		wantNote  *note.Note
+	}{
+		{
+			name:      "valid-1-get-note",
+			inputID:   uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+			shouldErr: false,
+			wantErr:   nil,
+			wantNote: &note.Note{
+				ID:            uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteCreatedAt: time.Unix(1772637646, 0),
+				NoteUpdatedAt: time.Unix(1772638846, 0),
+				NoteText: []byte(`# Baking notes
+## First look at the steps
+There are usually **lots of complex steps** in a recipe, and you must be prepared.
+## Watch the oven
+Make sure to not leave your baked goods in the oven, *without* keeping an eye on them. Especially ones that burn easily.
+## Mind the ingredient amounts
+Ingredients are sometimes extremely important to keep in specific ratios. Sometimes salted butter needs to be accounted for.
+## Be open to trying new cuisines
+There are sometimes great recipes from other cuisines and cultures that you would have never tried otherwise.`),
+				NoteTitle: "Baking Notes",
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Setup testing repository
+			repo := newTestDB(t)
+			defer closeTestDB(t, repo)
+
+			gotNote, gotErr := repo.GetNote(t.Context(), testCase.inputID)
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
 
 			// check returned note
 			if !testCase.shouldErr && gotNote != nil {
