@@ -72,9 +72,21 @@ func (r *SqliteRepository) CloseRepository() error {
 }
 
 func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (*note.Note, error) {
-	// Check for a nil pointer being passed in
 	if newNote == nil {
-		return nil, errors.New("nil pointer provided")
+		return nil, errors.New("nil pointer was passed")
+	}
+	if newNote.ID == uuid.Nil || newNote.ID == uuid.Max {
+		return nil, errors.New("invalid note id provided")
+	}
+	if len(newNote.NoteText) == 0 {
+		return nil, errors.New("empty note text provided")
+	}
+	if newNote.NoteTitle == "" {
+		return nil, errors.New("empty note title provided")
+	}
+	if newNote.NoteCreatedAt.IsZero() || newNote.NoteUpdatedAt.IsZero() {
+		log.Println("Warning: createdAt and updatedAt values are discarded.")
+		// These values are set by the databse itself when creating new notes.
 	}
 
 	// Query literal
@@ -92,7 +104,6 @@ func (r *SqliteRepository) InsertNote(ctx context.Context, newNote *note.Note) (
 		?
 	) RETURNING *;`
 
-	// Construct the row query and execute
 	row := r.DB.QueryRowContext(ctx, query, newNote.ID, newNote.NoteText, newNote.NoteTitle)
 	queryNote, err := scanRow(row)
 	if err != nil {
