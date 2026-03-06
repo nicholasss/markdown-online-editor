@@ -150,6 +150,22 @@ The worst thing you can do is stop learning and stop practicing.
 <span id="counter">4</span>`),
 			noteTitle: "Coding Notes",
 		},
+		{
+			id:        uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+			createdAt: 1772530246,
+			updatedAt: 1772534346,
+			noteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+			noteTitle: "Short Todo",
+		},
 	}
 
 	// Actually insert the mock data
@@ -279,6 +295,28 @@ The worst thing you can do is stop learning and stop practicing.
 
 <span id="counter">4</span>`),
 				NoteTitle: "Coding Notes",
+			},
+		},
+		{
+			name:      "valid-3-get-note",
+			inputID:   uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+			shouldErr: false,
+			wantErr:   nil,
+			wantNote: &note.Note{
+				ID:            uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+				NoteCreatedAt: time.Unix(1772530246, 0),
+				NoteUpdatedAt: time.Unix(1772534346, 0),
+				NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+				NoteTitle: "Short Todo",
 			},
 		},
 	}
