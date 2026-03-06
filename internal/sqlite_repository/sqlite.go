@@ -117,8 +117,7 @@ func (r *SqliteRepository) GetNote(ctx context.Context, noteID uuid.UUID) (*note
 	FROM
 		notes
 	WHERE
-		id = ?
-	RETURNING *;`
+		id = ?;`
 
 	// Construct the row query
 	row := r.DB.QueryRowContext(ctx, query, noteID)
