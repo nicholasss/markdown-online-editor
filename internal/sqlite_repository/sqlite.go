@@ -19,14 +19,13 @@ const DBDriver = "sqlite3"
 
 // Used by InsertNote, UpdateNote, and GetNote since they all return the entire record
 func scanRow(row *sql.Row) (*note.Note, error) {
-	// Declare query variables
 	var queryID uuid.NullUUID
 	var queryCreatedAt int64
 	var queryUpdatedAt int64
 	var queryNoteText []byte
 	var queryNoteTitle string
 
-	// Execute query with scan
+	// Execute query with scan and checking return error
 	err := row.Scan(&queryID, &queryCreatedAt, &queryUpdatedAt, &queryNoteText, &queryNoteTitle)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("unable to query row %w", err)
@@ -40,7 +39,6 @@ func scanRow(row *sql.Row) (*note.Note, error) {
 		return nil, errors.New("database returned a null UUID")
 	}
 
-	// Construct returning object
 	queryNote := note.Note{
 		ID:            queryID.UUID,
 		NoteCreatedAt: time.Unix(queryCreatedAt, 0),
