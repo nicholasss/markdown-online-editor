@@ -7,7 +7,7 @@ A simple and robust online Markdown editor.
 ## Requirements
 
 - [Goose](https://github.com/pressly/goose): A database migration tool.  
-Supports SQL migrations and Go functions.
+  Supports SQL migrations and Go functions.
 - [Sqlite 3](https://www.sqlite.org/): A simple file-based database.
 
 ## Setup
@@ -18,6 +18,7 @@ Supports SQL migrations and Go functions.
 
 ### Steps
 
-1. From the root directory create `./notes.db` and run `goose up`. You should  
-see it successfully migrate to fully through, without failures.
-2.
+1. Copy the `.env.example` to `.env` and fill in where it says "insert X here".
+2. From the root directory create `./notes.db` and run `goose up`. You should
+   see it successfully migrate to fully through, without failures.
+3.
