@@ -339,3 +339,28 @@ However I need to go shopping Saturday to prepare.
 		})
 	}
 }
+
+func TestGetAllNotes(t *testing.T) {
+	testTable := []struct {
+		name      string
+		shouldErr bool
+		wantErr   error
+		wantNotes []*note.Note
+	}{
+		{
+			name:      "valid-1-get-all-notes",
+			shouldErr: false,
+			wantErr:   nil,
+			wantNotes: []*note.Note{
+				{},
+				{},
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// perform test
+		})
+	}
+}
