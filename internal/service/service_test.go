@@ -399,3 +399,87 @@ However I need to go shopping Saturday to prepare.
 		})
 	}
 }
+
+func TestUpdateNote(t *testing.T) {
+	testTable := []struct {
+		name        string
+		shouldErr   bool
+		wantErr     error
+		skipIDCheck bool
+		updatedNote *note.Note
+		wantNote    *note.Note
+	}{
+		{
+			name:        "valid-1-update-text",
+			shouldErr:   false,
+			wantErr:     nil,
+			skipIDCheck: false,
+			updatedNote: &note.Note{
+				ID:        uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteText:  []byte(`new text`),
+				NoteTitle: "Baking Notes",
+			},
+			wantNote: &note.Note{
+				ID:        uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteText:  []byte(`new text`),
+				NoteTitle: "Baking Notes",
+			},
+		},
+		{
+			name:        "valid-1-update-title",
+			shouldErr:   false,
+			wantErr:     nil,
+			skipIDCheck: false,
+			updatedNote: &note.Note{
+				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+				NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+				NoteTitle: "Actually medium length todo",
+			},
+			wantNote: &note.Note{
+				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+				NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+				NoteTitle: "Actually medium length todo",
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// run test
+			serv := newTestService(t)
+			defer closeTestService(t, serv)
+
+			// call the test function
+			noteID := testCase.updatedNote.ID
+			title := testCase.updatedNote.NoteTitle
+			text := testCase.updatedNote.NoteText
+			gotNote, gotErr := serv.UpdateNote(t.Context(), noteID, title, text)
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+
+			// check returned note
+			if !testCase.shouldErr {
+				checkNoteEquality(t, testCase.skipIDCheck, gotNote, testCase.wantNote)
+			}
+		})
+	}
+}
