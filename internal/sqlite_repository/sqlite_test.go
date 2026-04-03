@@ -191,7 +191,7 @@ func TestInsertNote(t *testing.T) {
 		wantNote  *note.Note
 	}{
 		{
-			name: "valid-1",
+			name: "successful inserting note",
 			newNote: &note.Note{
 				ID: uuid.MustParse("2037225a-da01-4609-ad78-fb37c3f6cf06"),
 				NoteText: []byte(`# Language Learning
@@ -256,7 +256,7 @@ func TestGetNote(t *testing.T) {
 		wantNote  *note.Note
 	}{
 		{
-			name:      "valid-1-get-note",
+			name:      "successful getting a note",
 			inputID:   uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
 			shouldErr: false,
 			wantErr:   nil,
@@ -277,7 +277,7 @@ There are sometimes great recipes from other cuisines and cultures that you woul
 			},
 		},
 		{
-			name:      "valid-2-get-note",
+			name:      "successful getting a note",
 			inputID:   uuid.MustParse("337b8543-1272-4616-b9a3-3a16e5f9a522"),
 			shouldErr: false,
 			wantErr:   nil,
@@ -298,7 +298,7 @@ The worst thing you can do is stop learning and stop practicing.
 			},
 		},
 		{
-			name:      "valid-3-get-note",
+			name:      "successful getting a note",
 			inputID:   uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
 			shouldErr: false,
 			wantErr:   nil,
@@ -348,7 +348,7 @@ func TestGetAllNotes(t *testing.T) {
 		wantNotes []note.Note
 	}{
 		{
-			name:      "valid-1-get-all-notes",
+			name:      "successful getting all notes",
 			shouldErr: false,
 			wantErr:   nil,
 			wantNotes: []note.Note{
@@ -433,7 +433,7 @@ func TestUpdateNote(t *testing.T) {
 		wantNote    *note.Note
 	}{
 		{
-			name:      "valid-1-update-text",
+			name:      "successful updating note text",
 			shouldErr: false,
 			wantErr:   nil,
 			updatedNote: &note.Note{
@@ -448,7 +448,7 @@ func TestUpdateNote(t *testing.T) {
 			},
 		},
 		{
-			name:      "valid-1-update-title",
+			name:      "successful updating note title",
 			shouldErr: false,
 			wantErr:   nil,
 			updatedNote: &note.Note{
@@ -510,11 +510,19 @@ func TestDeleteNote(t *testing.T) {
 		deletingNote *note.Note
 	}{
 		{
-			name:      "valid-1-delete",
+			name:      "successful deleting note",
 			shouldErr: false,
 			wantErr:   nil,
 			deletingNote: &note.Note{
 				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+			},
+		},
+		{
+			name:      "failing to delete a nonexisting note",
+			shouldErr: true,
+			wantErr:   sqlite.ErrNoRowsDeleted,
+			deletingNote: &note.Note{
+				ID: uuid.New(),
 			},
 		},
 	}

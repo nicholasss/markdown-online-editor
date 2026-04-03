@@ -203,7 +203,7 @@ func TestCreateNote(t *testing.T) {
 		wantNote    *note.Note
 	}{
 		{
-			name: "valid-1-create-note",
+			name: "successful creating new note",
 			newNote: &note.Note{
 				NoteText: []byte(`# Language Learning
 ## Language List
@@ -271,7 +271,7 @@ func TestGetNote(t *testing.T) {
 		wantNote    *note.Note
 	}{
 		{
-			name:        "valid-1-get-note",
+			name:        "successful getting existing note",
 			inputID:     uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
 			shouldErr:   false,
 			wantErr:     nil,
@@ -323,7 +323,7 @@ func TestGetAllNotes(t *testing.T) {
 		wantNotes   []note.Note
 	}{
 		{
-			name:        "valid-1-get-all-notes",
+			name:        "successful getting all notes",
 			shouldErr:   false,
 			wantErr:     nil,
 			skipIDCheck: false,
@@ -410,7 +410,7 @@ func TestUpdateNote(t *testing.T) {
 		wantNote    *note.Note
 	}{
 		{
-			name:        "valid-1-update-text",
+			name:        "successful note text update",
 			shouldErr:   false,
 			wantErr:     nil,
 			skipIDCheck: false,
@@ -426,7 +426,7 @@ func TestUpdateNote(t *testing.T) {
 			},
 		},
 		{
-			name:        "valid-1-update-title",
+			name:        "successful note title update",
 			shouldErr:   false,
 			wantErr:     nil,
 			skipIDCheck: false,
@@ -492,11 +492,19 @@ func TestDeleteNote(t *testing.T) {
 		deletingNote *note.Note
 	}{
 		{
-			name:      "valid-1-delete",
+			name:      "successful deletion of note",
 			shouldErr: false,
 			wantErr:   nil,
 			deletingNote: &note.Note{
 				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+			},
+		},
+		{
+			name:      "failing to delete nonexistent note",
+			shouldErr: true,
+			wantErr:   sqlite.ErrNoRowsDeleted,
+			deletingNote: &note.Note{
+				ID: uuid.New(),
 			},
 		},
 	}
