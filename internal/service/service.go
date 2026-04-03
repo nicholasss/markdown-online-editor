@@ -25,9 +25,10 @@ func NewService(repo note.NoteRepository) (*ServiceImplementation, error) {
 // Service Methods
 
 // CreateNote will ensure that the note is valid and pass it onto the repository layer for insertion into the underlying database.
-// createdAt will have already been populated within the handler when the create note endpoint is hit.
+// createdAt is populated within the repository layer and so should be the zeroVal.
+// ID is populated within this function, and so should not be populated prior.
 func (serv *ServiceImplementation) CreateNote(ctx context.Context, createdAt time.Time, title string, text []byte) (*note.Note, error) {
-	if createdAt.After(time.Now().Add(time.Second)) || createdAt.IsZero() {
+	if !createdAt.IsZero() {
 		return nil, errors.New("invalid creation time")
 	}
 	if title == "" {
