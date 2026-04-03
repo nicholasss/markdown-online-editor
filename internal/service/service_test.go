@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -255,6 +256,145 @@ German is top priority, with Spanish close behind. Mandarin does not matter.`),
 			// check returned note
 			if !testCase.shouldErr && gotNote != nil {
 				checkNoteEquality(t, testCase.skipIDCheck, gotNote, testCase.wantNote)
+			}
+		})
+	}
+}
+
+func TestGetNote(t *testing.T) {
+	testTable := []struct {
+		name        string
+		inputID     uuid.UUID
+		shouldErr   bool
+		wantErr     error
+		skipIDCheck bool
+		wantNote    *note.Note
+	}{
+		{
+			name:        "valid-1-get-note",
+			inputID:     uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+			shouldErr:   false,
+			wantErr:     nil,
+			skipIDCheck: false,
+			wantNote: &note.Note{
+				ID:            uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteCreatedAt: time.Unix(1772637646, 0),
+				NoteUpdatedAt: time.Unix(1772638846, 0),
+				NoteText: []byte(`# Baking notes
+## First look at the steps
+There are usually **lots of complex steps** in a recipe, and you must be prepared.
+## Watch the oven
+Make sure to not leave your baked goods in the oven, *without* keeping an eye on them. Especially ones that burn easily.
+## Mind the ingredient amounts
+Ingredients are sometimes extremely important to keep in specific ratios. Sometimes salted butter needs to be accounted for.
+## Be open to trying new cuisines
+There are sometimes great recipes from other cuisines and cultures that you would have never tried otherwise.`),
+				NoteTitle: "Baking Notes",
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// run test
+			serv := newTestService(t)
+			defer closeTestService(t, serv)
+
+			// call the test function
+			gotNote, gotErr := serv.GetNote(t.Context(), testCase.inputID)
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+
+			// check returned note
+			if !testCase.shouldErr && gotNote != nil {
+				checkNoteEquality(t, testCase.skipIDCheck, gotNote, testCase.wantNote)
+			}
+		})
+	}
+}
+
+func TestGetAllNotes(t *testing.T) {
+	testTable := []struct {
+		name        string
+		shouldErr   bool
+		wantErr     error
+		skipIDCheck bool
+		wantNotes   []note.Note
+	}{
+		{
+			name:        "valid-1-get-all-notes",
+			shouldErr:   false,
+			wantErr:     nil,
+			skipIDCheck: false,
+			wantNotes: []note.Note{
+				{
+					ID:            uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+					NoteCreatedAt: time.Unix(1772637646, 0),
+					NoteUpdatedAt: time.Unix(1772638846, 0),
+					NoteText: []byte(`# Baking notes
+## First look at the steps
+There are usually **lots of complex steps** in a recipe, and you must be prepared.
+## Watch the oven
+Make sure to not leave your baked goods in the oven, *without* keeping an eye on them. Especially ones that burn easily.
+## Mind the ingredient amounts
+Ingredients are sometimes extremely important to keep in specific ratios. Sometimes salted butter needs to be accounted for.
+## Be open to trying new cuisines
+There are sometimes great recipes from other cuisines and cultures that you would have never tried otherwise.`),
+					NoteTitle: "Baking Notes",
+				},
+				{
+					ID:            uuid.MustParse("337b8543-1272-4616-b9a3-3a16e5f9a522"),
+					NoteCreatedAt: time.Unix(1772551246, 0),
+					NoteUpdatedAt: time.Unix(1772556346, 0),
+					NoteText: []byte(`# Coding notes
+## Watch out for typos
+Typos within code can lead to annoying bugs, make sure you are practicing for accuracy, not just speed.
+## Markup languages are your friend
+Markup languages can be very useful when keeping notes or storing information in a document.
+## Keep practicing
+The worst thing you can do is stop learning and stop practicing.
+
+<span id="counter">4</span>`),
+					NoteTitle: "Coding Notes",
+				},
+				{
+					ID:            uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+					NoteCreatedAt: time.Unix(1772530246, 0),
+					NoteUpdatedAt: time.Unix(1772534346, 0),
+					NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+					NoteTitle: "Short Todo",
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// run test
+			serv := newTestService(t)
+			defer closeTestService(t, serv)
+
+			// call the test function
+			gotNotes, gotErr := serv.GetAllNotes(t.Context())
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+
+			// check returned note
+			for i, gotNote := range *gotNotes {
+				if !testCase.shouldErr {
+					checkNoteEquality(t, testCase.skipIDCheck, &gotNote, &testCase.wantNotes[i])
+				}
 			}
 		})
 	}
