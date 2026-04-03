@@ -33,7 +33,7 @@ var (
 	ErrInvalidUpdatedAt = errors.New("invalid updated at value")
 )
 
-// === Sqlite Repository ===
+// === Helper Methods ===
 
 // Used by InsertNote, UpdateNote, and GetNote since they all return the entire record
 func scanRow(row *sql.Row) (*note.Note, error) {
