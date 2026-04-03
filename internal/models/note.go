@@ -30,7 +30,7 @@ type NoteService interface {
 	GetAllNotes(ctx context.Context) (*[]Note, error)
 
 	// Updates specified note in the repository and returns the updated note.
-	UpdateNote(ctx context.Context, noteID uuid.UUID, updatedAt time.Time, newTitle string, newText []byte) (*Note, error)
+	UpdateNote(ctx context.Context, noteID uuid.UUID, newTitle string, newText []byte) (*Note, error)
 
 	// Deletes the specified note from within the repository.
 	DeleteNote(ctx context.Context, noteID uuid.UUID) error
