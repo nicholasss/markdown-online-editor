@@ -62,8 +62,14 @@ func (serv *ServiceImplementation) GetAllNotes(ctx context.Context) (*[]note.Not
 	return serv.Repo.GetAllNotes(ctx)
 }
 
-func (serv *ServiceImplementation) UpdateNote(ctx context.Context, noteID uuid.UUID, updatedAt time.Time, newTitle string, newText []byte) (*note.Note, error) {
-	return nil, nil
+func (serv *ServiceImplementation) UpdateNote(ctx context.Context, noteID uuid.UUID, newTitle string, newText []byte) (*note.Note, error) {
+	noteToUpdate := &note.Note{
+		ID:        noteID,
+		NoteTitle: newTitle,
+		NoteText:  newText,
+	}
+
+	return serv.Repo.UpdateNote(ctx, noteToUpdate)
 }
 
 func (serv *ServiceImplementation) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
