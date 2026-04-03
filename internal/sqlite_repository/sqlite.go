@@ -250,7 +250,7 @@ func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToDelete *note.No
 	query := `DELETE FROM
 		notes
 	WHERE
-		id = *;`
+		id = ?;`
 
 	// Run query
 	res, err := r.DB.ExecContext(ctx, query, noteToDelete.ID)
