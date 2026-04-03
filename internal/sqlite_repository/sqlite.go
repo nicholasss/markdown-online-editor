@@ -35,6 +35,9 @@ var (
 	ErrInvalidNoteTitle = errors.New("invalid note title")
 	ErrInvalidCreatedAt = errors.New("invalid created at value ")
 	ErrInvalidUpdatedAt = errors.New("invalid updated at value")
+
+	// Rows Not Updated Errors
+	ErrNoRowsDeleted = errors.New("no rows deleted")
 )
 
 // === Helper Methods ===
@@ -267,7 +270,7 @@ func (r *SqliteRepository) DeleteNote(ctx context.Context, noteToDelete *note.No
 	if err != nil {
 		return err
 	} else if rowsAffected == 0 {
-		return errors.New("no rows deleted")
+		return ErrNoRowsDeleted
 	}
 
 	return nil
