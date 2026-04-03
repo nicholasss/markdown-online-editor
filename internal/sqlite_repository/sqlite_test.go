@@ -423,3 +423,84 @@ However I need to go shopping Saturday to prepare.
 		})
 	}
 }
+
+func TestUpdateNote(t *testing.T) {
+	testTable := []struct {
+		name        string
+		shouldErr   bool
+		wantErr     error
+		updatedNote *note.Note
+		wantNote    *note.Note
+	}{
+		{
+			name:      "valid-1-update-text",
+			shouldErr: false,
+			wantErr:   nil,
+			updatedNote: &note.Note{
+				ID:        uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteText:  []byte(`new text`),
+				NoteTitle: "Baking Notes",
+			},
+			wantNote: &note.Note{
+				ID:        uuid.MustParse("8050cf47-3145-4758-ac73-5ed384f5bd16"),
+				NoteText:  []byte(`new text`),
+				NoteTitle: "Baking Notes",
+			},
+		},
+		{
+			name:      "valid-1-update-title",
+			shouldErr: false,
+			wantErr:   nil,
+			updatedNote: &note.Note{
+				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+				NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+				NoteTitle: "Actually medium length todo",
+			},
+			wantNote: &note.Note{
+				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+				NoteText: []byte(`# Todo
+Snowstorm is coming in Sunday morning, so I can do some of the preparation then.
+However I need to go shopping Saturday to prepare.
+
+- [x] get milk
+- [x] get eggs
+- [x] get bread
+- [ ] get cat litter
+- [ ] get driveway salt
+- [ ] salt driveway and sidewalk`),
+				NoteTitle: "Actually medium length todo",
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Setup testing repository
+			repo := newTestDB(t)
+			defer closeTestDB(t, repo)
+
+			// perform test
+			gotNote, gotErr := repo.UpdateNote(t.Context(), testCase.updatedNote)
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+
+			// check returned note
+			if !testCase.shouldErr && gotNote != nil {
+				checkNoteEquality(t, gotNote, testCase.wantNote)
+			}
+		})
+	}
+}
+
+func TestDeleteNote(t *testing.T) {
+}
