@@ -483,3 +483,35 @@ However I need to go shopping Saturday to prepare.
 		})
 	}
 }
+
+func TestDeleteNote(t *testing.T) {
+	testTable := []struct {
+		name         string
+		shouldErr    bool
+		wantErr      error
+		deletingNote *note.Note
+	}{
+		{
+			name:      "valid-1-delete",
+			shouldErr: false,
+			wantErr:   nil,
+			deletingNote: &note.Note{
+				ID: uuid.MustParse("da0c2260-1a6f-4f49-837b-40831225dda9"),
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Setup testing repository
+			serv := newTestService(t)
+			defer closeTestService(t, serv)
+
+			// perform test
+			gotErr := serv.Repo.DeleteNote(t.Context(), testCase.deletingNote)
+
+			// Check the returned errors
+			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
+		})
+	}
+}
