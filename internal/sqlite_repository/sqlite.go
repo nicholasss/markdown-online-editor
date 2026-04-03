@@ -1,3 +1,7 @@
+// Package sqlite implements the repository interface utilizing the Sqlite3 database.
+//
+// The repository struct has a single property of the underlying database connections. It should be managed using the types factory method and 'close' methods.
+// Queries that are performed are stored as query literals within each function.
 package sqlite
 
 import (

@@ -1,3 +1,4 @@
+// Package note defines all important types and interfaces that are used throughout this project.
 package note
 
 import (
