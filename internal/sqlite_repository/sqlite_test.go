@@ -530,11 +530,6 @@ func TestDeleteNote(t *testing.T) {
 
 			// Check the returned errors
 			checkTestError(t, testCase.shouldErr, gotErr, testCase.wantErr)
-
-			// check returned note
-			// if !testCase.shouldErr && gotNote != nil {
-			// 	checkNoteEquality(t, gotNote, testCase.wantNote)
-			// }
 		})
 	}
 }
